@@ -131,8 +131,8 @@ return {
         end,
         offsets = {
           {
-            filetype = "oil",
-            text = "Oil",
+            filetype = "minifiles",
+            text = "Mini Files",
             highlight = "Directory",
             text_align = "left",
           },
@@ -214,6 +214,35 @@ return {
     },
   },
 
+  -- Indent guides
+  {
+    "lukas-reineke/indent-blankline.nvim",
+    event = "VeryLazy",
+    main = "ibl",
+    opts = {
+      indent = {
+        char = "│",
+        tab_char = "│",
+      },
+      scope = { enabled = true },
+      exclude = {
+        filetypes = {
+          "help",
+          "alpha",
+          "dashboard",
+          "neo-tree",
+          "Trouble",
+          "trouble",
+          "lazy",
+          "mason",
+          "notify",
+          "toggleterm",
+          "lazyterm",
+        },
+      },
+    },
+  },
+
   -- Dashboard
   {
     "nvimdev/dashboard-nvim",
@@ -243,6 +272,7 @@ return {
             { action = "Telescope find_files", desc = " Find file", icon = " ", key = "f" },
             { action = "Telescope live_grep", desc = " Find text", icon = " ", key = "g" },
             { action = "Telescope oldfiles", desc = " Recent files", icon = " ", key = "r" },
+            { action = [[lua require("persistence").load()]], desc = " Restore Session", icon = " ", key = "s" },
             { action = "Lazy", desc = " Lazy", icon = "󰒲 ", key = "l" },
             { action = "qa", desc = " Quit", icon = " ", key = "q" },
           },
@@ -272,8 +302,7 @@ return {
         setopt = true,
         -- Override the default segments to be clean
         segments = {
-          -- Fold column (clean icons only, no numbers)
-          { text = { builtin.foldfunc }, click = "v:lua.ScFa" },
+          -- No fold column
           -- Sign column (git signs, diagnostics)
           { text = { "%s" }, click = "v:lua.ScSa" },
           -- Line number

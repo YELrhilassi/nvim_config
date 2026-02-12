@@ -93,6 +93,12 @@ return {
           require("telescope").load_extension("fzf")
         end,
       },
+      {
+        "nvim-telescope/telescope-ui-select.nvim",
+        config = function()
+          require("telescope").load_extension("ui-select")
+        end,
+      },
     },
     keys = {
       { "<leader>,", "<cmd>Telescope buffers sort_mru=true sort_lastused=true<cr>", desc = "Switch Buffer" },
@@ -124,6 +130,13 @@ return {
       { "<leader>sw", "<cmd>Telescope grep_string<cr>", desc = "Word (root dir)" },
     },
     opts = {
+      extensions = {
+        ["ui-select"] = {
+          require("telescope.themes").get_dropdown({
+            -- even more opts
+          }),
+        },
+      },
       defaults = {
         prompt_prefix = " ",
         selection_caret = " ",

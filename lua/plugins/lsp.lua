@@ -20,6 +20,15 @@ return {
           prefix = "●",
         },
         severity_sort = true,
+        -- Define clearer signs
+        signs = {
+          text = {
+            [vim.diagnostic.severity.ERROR] = "●",
+            [vim.diagnostic.severity.WARN] = "●",
+            [vim.diagnostic.severity.HINT] = "●",
+            [vim.diagnostic.severity.INFO] = "●",
+          },
+        },
       },
       -- Enable this to enable the builtin LSP inlay hints on Neovim >= 0.10
       inlay_hints = {
@@ -91,39 +100,50 @@ return {
              vim.keymap.set(mode, lhs, rhs, { buffer = buffer, desc = desc })
           end
 
-          map("n", "gD", vim.lsp.buf.declaration, "Goto Declaration")
+          map("n", "gD", function()
+            -- Handle declaration with fallback
+            local params = vim.lsp.util.make_position_params()
+            vim.lsp.buf_request(0, "textDocument/declaration", params, function(err, result, ctx, config)
+              if err or not result or vim.tbl_isempty(result) then
+                -- Fallback to definition if declaration fails
+                vim.notify("Declaration not found, falling back to definition", vim.log.levels.INFO)
+                vim.cmd("normal! gd")
+              else
+                vim.lsp.util.jump_to_location(result[1] or result, "utf-8")
+              end
+            end)
+          end, "Goto Declaration")
           
           -- Custom Goto Definition: centers view with context
           map("n", "gd", function()
-            vim.lsp.buf.definition({
+            require("telescope.builtin").lsp_definitions({
               on_list = function(options)
-                local items = options.items
-                if #items == 1 then
-                  local item = items[1]
-                  vim.lsp.util.jump_to_location(item, client.offset_encoding)
-                  -- Center close to top (zt) then scroll up 7 lines for context
+                -- If only one item, jump directly with centering
+                if #options.items == 1 then
+                  local item = options.items[1]
+                  vim.lsp.util.jump_to_location(item, "utf-8")
                   vim.cmd("normal! zt7<C-y>")
                 else
-                  -- Fallback for multiple items
-                  vim.fn.setqflist({}, ' ', options)
-                  vim.cmd.copen()
+                  -- Otherwise show Telescope picker
+                  require("telescope.builtin").lsp_definitions(options)
                 end
               end,
+              reuse_win = true,
             })
           end, "Goto Definition")
 
           map("n", "K", vim.lsp.buf.hover, "Hover")
-          map("n", "gI", vim.lsp.buf.implementation, "Goto Implementation")
+          map("n", "gI", "<cmd>Telescope lsp_implementations<cr>", "Goto Implementation")
           map("n", "<C-k>", vim.lsp.buf.signature_help, "Signature Help")
           map("n", "<leader>wa", vim.lsp.buf.add_workspace_folder, "Add Workspace Folder")
           map("n", "<leader>wr", vim.lsp.buf.remove_workspace_folder, "Remove Workspace Folder")
           map("n", "<leader>wl", function()
             print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
           end, "List Workspace Folders")
-          map("n", "<leader>D", vim.lsp.buf.type_definition, "Type Definition")
+          map("n", "<leader>D", "<cmd>Telescope lsp_type_definitions<cr>", "Type Definition")
           map("n", "<leader>cr", vim.lsp.buf.rename, "Rename")
           map({ "n", "v" }, "<leader>ca", vim.lsp.buf.code_action, "Code Action")
-          map("n", "gr", vim.lsp.buf.references, "References")
+          map("n", "gr", "<cmd>Telescope lsp_references<cr>", "References")
           
           if client and client.server_capabilities.inlayHintProvider and vim.lsp.inlay_hint then
             map("n", "<leader>th", function()
